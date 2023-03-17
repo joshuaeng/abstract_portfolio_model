@@ -3,6 +3,16 @@ from src.DataHandler import PortfolioData
 from abc import ABC, abstractmethod
 
 
+class Screener(ABC):
+    @abstractmethod
+    def add_screen(self, screen):
+        raise NotImplementedError("This method is not implemented.")
+
+    @abstractmethod
+    def apply_screens(self):
+        raise NotImplementedError("This method is not implemented.")
+
+
 class Screen:
     """Creates Screen objects that can be input in PortfolioScreener."""
     def __init__(self, filter_name: str, column_name: str, condition: str):
@@ -11,17 +21,7 @@ class Screen:
         self.condition = condition
 
     def __repr__(self):
-        return f"Filter({self.filter_name}, {self.column_name}, {self.condition})"
-
-
-class Screener(ABC):
-    @abstractmethod
-    def add_screen(self, screen: Screen):
-        raise NotImplementedError("This method is not implemented.")
-
-    @abstractmethod
-    def apply_screens(self):
-        raise NotImplementedError("This method is not implemented.")
+        return f"Screen({self.filter_name}, {self.column_name}, {self.condition})"
 
 
 class PortfolioScreener(Screener):
@@ -45,13 +45,10 @@ class PortfolioScreener(Screener):
                 {screen.filter_name: eval(f"self.portfolio_data['{screen.column_name}'] {screen.condition}")}
             )
 
-    def _get_screener_matrix(self):
-        self.screener_matrix = pd.DataFrame(self._screen_dict, index=self.portfolio_data.index)
-
     def apply_screens(self):
-        """Applied screens in portfolio data"""
+        """Applies screens in portfolio data"""
         if self._screen_dict == dict():
-            raise AssertionError("No Screen has been added.")
+            raise AssertionError("No Screen has been added yet.")
         else:
-            self._get_screener_matrix()
+            self.screener_matrix = pd.DataFrame(self._screen_dict, index=self.portfolio_data.index)
             self.portfolio_data = self.portfolio_data.loc[self.screener_matrix.all(axis=1)]
